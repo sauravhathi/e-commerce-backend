@@ -51,6 +51,8 @@ router.post('/user/cart', User.addToCart);
 
 router.post('/user/cart/update', User.updateCart);
 
+router.get('/cart', User.getCart);
+
 router.get('/search/:query', ProductController.searchProducts);
 
 module.exports = router;

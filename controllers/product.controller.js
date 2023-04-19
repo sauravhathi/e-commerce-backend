@@ -8,12 +8,12 @@ exports.getAllProducts = async (req, res) => {
                 message: 'No products found'
             });
         }
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 2;
-        const sortField = req.query.sortField || '_id';
-        const sortOrder = req.query.sortOrder || 'asc';
-        const totalPages = Math.ceil(size / limit);
-        const skip = (page - 1) * limit;
+        const page = parseInt(req.query.page) || 0;
+        const limit = parseInt(req.query.limit) || 4;
+        const sortField = req.query.sortField || 'createdAt';
+        const sortOrder = req.query.sortOrder || 'desc';
+        const totalPages = Math.ceil(size / limit) || 0;
+        const skip = Math.abs(page - 1) * limit;
         let query = {};
         if (req.query.category) {
             query.category = req.query.category.charAt(0).toUpperCase() + req.query.category.slice(1);
@@ -22,6 +22,7 @@ exports.getAllProducts = async (req, res) => {
             .skip(skip)
             .limit(limit)
             .sort({ [sortField]: sortOrder });
+        console.log(products);
         res.json({ products, page, limit, totalPages });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -73,7 +74,10 @@ exports.createManyProducts = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
     try {
         const id = req.params.id;
-        await Product.findByIdAndDelete(id);
+        const product = await Product.findByIdAndRemove(id);
+        if (product == null) {
+            return res.status(404).json({ message: 'Cannot find product' });
+        }
         res.json({ message: 'Product deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
