@@ -152,26 +152,12 @@ exports.updateCart = async (req, res) => {
     }
 }
 
-// add to card data 
-// 643914731854fa28b6f78984
-// 3
-// 643914ca1854fa28b6f78988
-// 2
-// 643914d11854fa28b6f7898a
-// 2
-// 64391cea36ed1180adbf3d8c
-// 1
-
-// 64391cea36ed1180adbf3d8a
-// 1
 exports.getCart = async (req, res) => {
     try {
         const token = req.header('auth-token');
         const verified = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(verified);
         const user = await User.findById(verified._id);
         const cart = user.cart;
-        console.log(cart);
         const products = await Product.find({ _id: { $in: cart.map((item) => item.productId) } });
         const cartItems = products.map((product) => {
             const item = cart.find((item) => item.productId === product._id.toString());
@@ -183,7 +169,6 @@ exports.getCart = async (req, res) => {
                 quantity: item.quantity,
             };
         });
-        console.log(cartItems);
         res.json({ cartItems });
     } catch (err) {
         res.status(400).json({ message: err.message });

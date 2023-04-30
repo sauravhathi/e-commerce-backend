@@ -4,27 +4,26 @@ exports.getAllProducts = async (req, res) => {
     try {
         const size = await Product.countDocuments();
         if (size === 0) {
-            res.json({
+            return res.status(404).json({
                 message: 'No products found'
             });
         }
-        const page = parseInt(req.query.page) || 0;
+        const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 4;
         const sortField = req.query.sortField || 'createdAt';
         const sortOrder = req.query.sortOrder || 'desc';
-        const totalPages = Math.ceil(size / limit) || 0;
-        const skip = Math.abs(page - 1) * limit;
-        let query = {};
-        if (req.query.category) {
-            query.category = req.query.category.charAt(0).toUpperCase() + req.query.category.slice(1);
-        }
+        const totalPages = Math.ceil(size / limit);
+        const skip = (page - 1) * limit;
+        const query = req.query.category ? { category: req.query.category.charAt(0).toUpperCase() + req.query.category.slice(1) } : {};
         const products = await Product.find(query)
             .skip(skip)
             .limit(limit)
             .sort({ [sortField]: sortOrder });
-        console.log(products);
-        res.json({ products, page, limit, totalPages });
-    } catch (err) { res.status(500).json({ message: err.message }); }
+        res.status(200).json({ products, page, limit, totalPages });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Something went wrong' });
+    }
 };
 
 exports.getProductById = async (req, res) => {
@@ -157,8 +156,6 @@ exports.searchProducts = async (req, res) => {
         if (size === 0) {
             res.json({ message: 'No products found' });
         }
-        // Use $or operator to search in multiple fields
-        console.log(req.params.query);
         const products = await Product.find({
             $or: [
                 { name: { $regex: req.params.query, $options: 'i' } },
